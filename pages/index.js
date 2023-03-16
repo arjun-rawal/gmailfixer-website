@@ -19,8 +19,7 @@ export default function Home() {
       if (resp.error !== undefined) {
         throw (resp);
       }
-      document.getElementById('signout_button').style.visibility = 'visible';
-      document.getElementById('authorize_button').innerText = 'Refresh';
+
       await listLabels();
     };
 
@@ -44,7 +43,6 @@ export default function Home() {
       gapi.client.setToken('');
       document.getElementById('content').innerText = '';
       document.getElementById('authorize_button').innerText = 'Authorize';
-      document.getElementById('signout_button').style.visibility = 'hidden';
     }
   }
 
