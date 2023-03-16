@@ -15,7 +15,7 @@ export default function Home() {
   const SCOPES = "https://www.googleapis.com/auth/gmail.readonly";
 
   let tokenClient;
-  const [inbox,setInbox] = useState("Loading... (this might take a minute)")
+  const [inbox,setInbox] = useState("")
   function handleAuthClick() {
     tokenClient.callback = async (resp) => {
       if (resp.error !== undefined) {
@@ -72,6 +72,7 @@ export default function Home() {
     let response1;
     var gmails = "";
     console.log(labels.length);
+    setInbox("Loading... (this might take a minute)")
     for (var i = 0; i < labels.length; i++) {
       response1 = await gapi.client.gmail.users.messages.get({
         userId: "me",
