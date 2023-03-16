@@ -13,9 +13,10 @@ export default function Home() {
   // Authorization scopes required by the API; multiple scopes can be
   // included, separated by spaces.
   const SCOPES = "https://www.googleapis.com/auth/gmail.readonly";
-
+  var gmails = [];
+  const [gmailMapArray, setGmails] = useState();
   let tokenClient;
-  const [inbox,setInbox] = useState("")
+  const [inbox, setInbox] = useState("");
   function handleAuthClick() {
     tokenClient.callback = async (resp) => {
       if (resp.error !== undefined) {
@@ -52,11 +53,17 @@ export default function Home() {
    * Print all Labels in the authorized user's inbox. If no labels
    * are found an appropriate message is printed.
    */
+
   async function listLabels() {
+    const start = new Date();
+    var startM = start.getMinutes();
+    var startS = start.getSeconds();
+
     let response;
     try {
       response = await gapi.client.gmail.users.messages.list({
         userId: "me",
+        maxResults: 500,
       });
     } catch (err) {
       document.getElementById("content").innerText = err.message;
@@ -70,19 +77,25 @@ export default function Home() {
 
     // Flatten to string to display
     let response1;
-    var gmails = "";
     console.log(labels.length);
-    setInbox("Loading... (this might take a minute)")
+    setInbox("Loading... (this might take a minute)");
     for (var i = 0; i < labels.length; i++) {
       response1 = await gapi.client.gmail.users.messages.get({
         userId: "me",
         id: labels[i].id,
-        format: "raw",
+        format: "metadata",
       });
-      gmails += response1.result.snippet + "\n\n";
+      var temp = response1.result.payload.headers;
+      var temp2 = temp.filter(n => n.name === 'From');
+      gmails[i] = temp2[0].value;
     }
-    setInbox(gmails);
+    setInbox("done");
+    setGmails(gmails);
     console.log(gmails);
+    const end = new Date();
+    var endM = end.getMinutes();
+    var endS = end.getSeconds();
+    console.log((endM - startM) * 60 + (endS - startS));
     /*   var decode = function(input) {
     // Replace non-url compatible chars with base64 standard chars
     input = input
@@ -103,7 +116,6 @@ export default function Home() {
 var decodedGmails = atob(decode(gmails))
  console.log(decodedGmails);
  */
-    document.getElementById("content").innerText = gmails;
   }
   function gapiLoaded() {
     gapi.load("client", initializeGapiClient);
@@ -123,6 +135,18 @@ var decodedGmails = atob(decode(gmails))
       callback: "", // defined later
     });
   }
+
+  const MappedInbox = () => {
+    const headings = gmailMapArray.map((gmail, index) => (
+      <div
+        style={{ border: "3px solid grey", marginBottom: "20px" }}
+        key={index}
+      >
+        {gmail}
+      </div>
+    ));
+    return <div>{headings}</div>;
+  };
   return (
     <>
       <Head>
@@ -142,7 +166,7 @@ var decodedGmails = atob(decode(gmails))
       ></Script>
 
       <button onClick={handleAuthClick}>Authorize</button>
-      <p>{inbox}</p>
+      {inbox == "done" ? <MappedInbox /> : inbox}
     </>
   );
 }
