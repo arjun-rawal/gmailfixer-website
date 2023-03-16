@@ -17,6 +17,7 @@ export default function Home() {
   const [gmailMapArray, setGmails] = useState();
   let tokenClient;
   const [inbox, setInbox] = useState("");
+  var dict = {}
   function handleAuthClick() {
     tokenClient.callback = async (resp) => {
       if (resp.error !== undefined) {
@@ -89,6 +90,26 @@ export default function Home() {
       var temp2 = temp.filter(n => n.name === 'From');
       gmails[i] = temp2[0].value;
     }
+
+        for (var i = 0; i<gmails.length; i++){
+          let temp3 = gmails[i]
+          let temp4 = -1;
+          let end = false;
+          while (!end && (gmails.length !=0)){
+
+            if (gmails.findIndex(isLargeNumber) == -1 || temp3 == undefined){
+              end = true;
+            }
+            delete gmails[gmails.findIndex(isLargeNumber)];
+            temp4++;
+          }
+          dict[temp3] = temp4;
+          function isLargeNumber(element) {
+            return element == temp3;
+          }
+        }
+      console.log(dict);
+
     setInbox("done");
     setGmails(gmails);
     console.log(gmails);
