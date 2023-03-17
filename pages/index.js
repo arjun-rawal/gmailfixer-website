@@ -2,6 +2,7 @@ import Head from "next/head";
 import styles from "@/styles/Home.module.css";
 import Script from "next/script";
 import { useState } from "react";
+import { Bar, BarChart, CartesianGrid, Legend, Tooltip, XAxis, YAxis } from "recharts";
 export default function Home() {
   //please don't use my api key and id!!! I wasn't able to hide them but still get vercel to use them
   const CLIENT_ID =
@@ -17,7 +18,7 @@ export default function Home() {
   const [gmailMapArray, setGmails] = useState();
   let tokenClient;
   const [inbox, setInbox] = useState("");
-  var dict = {}
+  var dict = [];
   function handleAuthClick() {
     tokenClient.callback = async (resp) => {
       if (resp.error !== undefined) {
@@ -67,12 +68,10 @@ export default function Home() {
         maxResults: 500,
       });
     } catch (err) {
-      document.getElementById("content").innerText = err.message;
       return;
     }
     const labels = response.result.messages;
     if (!labels || labels.length == 0) {
-      document.getElementById("content").innerText = "No labels found.";
       return;
     }
 
@@ -80,16 +79,18 @@ export default function Home() {
     let response1;
     console.log(labels.length);
     setInbox("Loading... (this might take a minute)");
-    for (var i = 0; i < labels.length; i++) {
+    for (var i = 0; i < 500; i++) {
       response1 = await gapi.client.gmail.users.messages.get({
         userId: "me",
         id: labels[i].id,
         format: "metadata",
       });
       var temp = response1.result.payload.headers;
-      var temp2 = temp.filter(n => n.name === 'From');
+      console.log(temp);
+      var temp2 = temp.filter(n => n.name.toLowerCase() === 'from');
       gmails[i] = temp2[0].value;
     }
+  
 
         for (var i = 0; i<gmails.length; i++){
           let temp3 = gmails[i]
@@ -103,16 +104,21 @@ export default function Home() {
             delete gmails[gmails.findIndex(isLargeNumber)];
             temp4++;
           }
-          dict[temp3] = temp4;
+          if (temp4 != 0){
+            dict.push({
+              "name" : temp3,
+              "value" : temp4,
+            })
+        }
           function isLargeNumber(element) {
             return element == temp3;
           }
         }
+      dict.sort((a, b) => b.value - a.value);
       console.log(dict);
 
     setInbox("done");
-    setGmails(gmails);
-    console.log(gmails);
+    setGmails(dict);
     const end = new Date();
     var endM = end.getMinutes();
     var endS = end.getSeconds();
@@ -158,15 +164,18 @@ var decodedGmails = atob(decode(gmails))
   }
 
   const MappedInbox = () => {
-    const headings = gmailMapArray.map((gmail, index) => (
-      <div
-        style={{ border: "3px solid grey", marginBottom: "20px" }}
-        key={index}
-      >
-        {gmail}
-      </div>
-    ));
-    return <div>{headings}</div>;
+
+    return (
+      <BarChart width={3000} height={750} data={gmailMapArray}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="name" />
+        <YAxis />
+        <Tooltip />
+        <Legend />
+        <Bar dataKey="value" fill="#8884d8" />
+      </BarChart>
+
+      );
   };
   return (
     <>
